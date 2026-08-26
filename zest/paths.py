@@ -1,4 +1,4 @@
-"""Shared filesystem layout for the demo pipeline.
+"""Shared filesystem layout for the TerminalBench trajectory pipeline.
 
 All data lands under the repository's data/ directory by default; override with the
 ZEST_DATA_DIR environment variable.
@@ -14,8 +14,6 @@ RAW_DIR = DATA_DIR / "raw"
 NORMALIZED_DIR = DATA_DIR / "normalized"
 CURATED_DIR = DATA_DIR / "curated"
 
-RAW_SWEBENCH = RAW_DIR / "swebench"
-RAW_MOSAIC = RAW_DIR / "mosaic"
 RAW_TBENCH20 = RAW_DIR / "tbench2.0"
 RAW_TBENCH21 = RAW_DIR / "tbench2.1"
 
@@ -28,7 +26,7 @@ CURATED_TERMINAL_BENCH = {
 
 
 def ensure_dirs() -> None:
-    for d in (RAW_SWEBENCH, RAW_MOSAIC, NORMALIZED_DIR, RAW_TBENCH20, RAW_TBENCH21):
+    for d in (NORMALIZED_DIR, RAW_TBENCH20, RAW_TBENCH21):
         d.mkdir(parents=True, exist_ok=True)
 
 

@@ -1,10 +1,10 @@
 """Interactive CLI viewer for close reading of normalized or curated trajectories.
 
-This is the Month-2 annotation companion: read a trajectory straight
-through, one step after another, and note design-decision points.
+Use it to read a trajectory from start to finish and inspect potential
+design-decision points.
 
 Usage:
-    python -m zest.viewer data/normalized/swebench.jsonl --list
+    python -m zest.viewer data/curated/terminal_bench_2_1/trajectories.jsonl --list
     python -m zest.viewer data/curated/terminal_bench_2_0/trajectories.jsonl --index 0
 
 Keys at the prompt:  t = next trajectory, q = quit.

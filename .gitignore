@@ -10,7 +10,6 @@
 
 # Local presentation material is not part of the code repository.
 /presentations/
-/annotations/
 
 # Temporary build and verification workspaces created by local tools.
 /.codex_tmp/
@@ -50,6 +49,9 @@ __pycache__/
 venv/
 .ipynb_checkpoints/
 .jupyter_cache/
+
+# Local validation tests are not part of the public research repository.
+/tests/
 
 # Packaging, test, type-checker, and coverage caches.
 *.egg-info/

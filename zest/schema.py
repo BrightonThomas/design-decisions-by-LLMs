@@ -1,14 +1,14 @@
 """Unified trajectory schema.
 
-Every source (SWE-bench submissions, Terminal-Bench runs, MOSAIC PRs) is
-normalized into the same two structures so that all downstream analysis
+TerminalBench 2.0 and 2.1 runs are normalized into the same two structures
+so that all downstream analysis
 (stats, viewing, annotation, extraction) works on one format:
 
     Trajectory
-      source            "swebench" | "tbench" | "tbench21" | "mosaic"
+      source            "tbench" | "tbench21"
       agent             scaffold name (e.g. "sweagent", "claude-code")
       model             underlying LLM if known
-      task_id           benchmark instance id / PR identifier
+      task_id           benchmark task identifier
       resolved          True/False if outcome is known, else None
       steps             ordered list of Step
       duration_seconds  wall-clock span of the run (last step timestamp minus

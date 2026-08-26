@@ -1,20 +1,12 @@
-"""Normalize raw downloads into the unified Trajectory schema (schema.py).
+"""Normalize TerminalBench downloads into the unified trajectory schema.
 
-Trajectory formats differ per agent scaffold, so each normalizer tries a
-series of known shapes and logs-and-skips anything it cannot interpret —
-unknown formats are a finding, not a crash: they tell us which scaffolds
-need a dedicated parser in the next iteration.
-
-Recognized step shapes (tried in order):
-  1. {"trajectory": [{"thought", "action", "observation"}, ...]}   (SWE-agent .traj)
-  2. {"history"/"messages": [{"role", "content"}, ...]}            (chat-style)
-  3. top-level list of {"role", "content"} messages
+TerminalBench 2.0 and 2.1 use the Agent Trajectory Interchange Format
+(ATIF). Unrecognized or malformed records are reported and skipped so a
+single bad trajectory does not interrupt corpus processing.
 
 Usage:
-    python -m zest.parse --source swebench
     python -m zest.parse --source tbench
     python -m zest.parse --source tbench21
-    python -m zest.parse --source mosaic
     python -m zest.parse --source all
 """
 
@@ -25,7 +17,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from .paths import NORMALIZED_DIR, RAW_MOSAIC, RAW_SWEBENCH, RAW_TBENCH20, RAW_TBENCH21, ensure_dirs
+from .paths import NORMALIZED_DIR, RAW_TBENCH20, RAW_TBENCH21, ensure_dirs
 from .schema import Step, Trajectory, write_jsonl
 
 MAX_FIELD_CHARS = 20_000  # keep pathological observations from bloating the corpus
@@ -38,79 +30,6 @@ def _clip(text) -> str | None:
     if len(s) > MAX_FIELD_CHARS:
         return s[:MAX_FIELD_CHARS] + f"\n...[clipped {len(s) - MAX_FIELD_CHARS} chars]"
     return s
-
-
-# ---------------------------------------------------------------- step shapes
-
-def _steps_from_thought_action_obs(items: list) -> list[Step] | None:
-    """Shape 1: explicit thought/action/observation records (SWE-agent style)."""
-    if not items or not all(isinstance(it, dict) for it in items):
-        return None
-    keys = set().union(*(it.keys() for it in items))
-    if not ({"thought", "action"} & keys or {"response", "observation"} & keys):
-        return None
-    steps = []
-    for i, it in enumerate(items):
-        steps.append(
-            Step(
-                index=i,
-                thought=_clip(it.get("thought") or it.get("response")),
-                action=_clip(it.get("action")),
-                observation=_clip(it.get("observation")),
-            )
-        )
-    return steps
-
-
-def _steps_from_messages(items: list) -> list[Step] | None:
-    """Shapes 2/3: role/content chat messages. Assistant turns become
-    thought+action; the following tool/user turn becomes the observation."""
-    if not items or not all(isinstance(it, dict) and "role" in it for it in items):
-        return None
-
-    def content_text(msg) -> str:
-        c = msg.get("content", "")
-        if isinstance(c, list):  # anthropic-style content blocks
-            return "\n".join(
-                b.get("text", "") if isinstance(b, dict) else str(b) for b in c
-            )
-        return str(c)
-
-    steps: list[Step] = []
-    current: Step | None = None
-    for msg in items:
-        role = msg.get("role")
-        if role == "assistant":
-            if current is not None:
-                steps.append(current)
-            text = content_text(msg)
-            calls = msg.get("tool_calls") or []
-            action = "\n".join(json.dumps(c, default=str) for c in calls) or None
-            current = Step(index=len(steps), thought=_clip(text), action=_clip(action))
-        elif role in ("tool", "user", "system") and current is not None:
-            current.observation = _clip(content_text(msg))
-            steps.append(current)
-            current = None
-    if current is not None:
-        steps.append(current)
-    return steps or None
-
-
-def steps_from_obj(obj) -> list[Step] | None:
-    if isinstance(obj, dict):
-        for key in ("trajectory", "traj", "steps"):
-            if isinstance(obj.get(key), list):
-                found = _steps_from_thought_action_obs(obj[key])
-                if found:
-                    return found
-        for key in ("history", "messages"):
-            if isinstance(obj.get(key), list):
-                found = _steps_from_messages(obj[key])
-                if found:
-                    return found
-    if isinstance(obj, list):
-        return _steps_from_thought_action_obs(obj) or _steps_from_messages(obj)
-    return None
 
 
 # ------------------------------------------------------- ATIF (Terminal-Bench)
@@ -234,51 +153,6 @@ def atif_trajectory(obj: dict, fallback_id: str, source: str = "tbench") -> Traj
 
 
 # ------------------------------------------------------------------- sources
-
-def _load_resolved_ids(submission_dir: Path) -> set[str]:
-    results = submission_dir / "results.json"
-    if not results.exists():
-        return set()
-    try:
-        data = json.loads(results.read_text(encoding="utf-8"))
-        return set(data.get("resolved", []))
-    except (json.JSONDecodeError, AttributeError):
-        return set()
-
-
-def parse_swebench() -> list[Trajectory]:
-    out, skipped = [], []
-    for submission_dir in sorted(RAW_SWEBENCH.iterdir() if RAW_SWEBENCH.exists() else []):
-        if not submission_dir.is_dir():
-            continue
-        resolved_ids = _load_resolved_ids(submission_dir)
-        agent = submission_dir.name  # e.g. 20240402_sweagent_gpt4
-        for f in sorted((submission_dir / "trajs").rglob("*")):
-            if not f.is_file():
-                continue
-            try:
-                obj = json.loads(f.read_text(encoding="utf-8", errors="replace"))
-            except json.JSONDecodeError:
-                skipped.append(f.name)
-                continue
-            steps = steps_from_obj(obj)
-            if not steps:
-                skipped.append(f.name)
-                continue
-            task_id = f.stem
-            out.append(
-                Trajectory(
-                    source="swebench",
-                    agent=agent,
-                    model=agent.split("_", 1)[-1] if "_" in agent else None,
-                    task_id=task_id,
-                    resolved=(task_id in resolved_ids) if resolved_ids else None,
-                    steps=steps,
-                    meta={"file": f.name, "submission": submission_dir.name},
-                )
-            )
-    _report("swebench", out, skipped)
-    return out
 
 
 def parse_tbench() -> list[Trajectory]:
@@ -404,61 +278,6 @@ def parse_tbench21() -> list[Trajectory]:
     return out
 
 
-_MOSAIC_TITLE_KEYS = ("title", "pr_title", "name")
-_MOSAIC_BODY_KEYS = ("body", "pr_body", "description", "text")
-
-
-def _first(row: dict, keys) -> str | None:
-    for k in keys:
-        if row.get(k):
-            return str(row[k])
-    return None
-
-
-def parse_mosaic() -> list[Trajectory]:
-    """MOSAIC rows are pull requests, not live reasoning traces. Each PR
-    becomes a single-step Trajectory whose 'thought' is the PR description —
-    the decision-in-practice record used for breadth, not step-level analysis.
-
-    Agent identity lives in the HuggingFace config name (e.g.
-    "PullRequests_Claude"), not in any per-row field — a row's own "author"
-    is the human/bot GitHub account, not our agent label. fetch_mosaic.py
-    saves one file per config, named after it, so the filename stem is the
-    source of truth here."""
-    out, skipped = [], []
-    files = sorted(RAW_MOSAIC.glob("*.jsonl"))
-    if not files:
-        _report("mosaic", out, skipped)
-        return out
-    for path in files:
-        agent = path.stem.split("_", 1)[-1] if "_" in path.stem else path.stem
-        with open(path, encoding="utf-8") as f:
-            for i, line in enumerate(f):
-                if not line.strip():
-                    continue
-                try:
-                    row = json.loads(line)
-                except json.JSONDecodeError:
-                    skipped.append(f"{path.name}[{i}]")
-                    continue
-                title = _first(row, _MOSAIC_TITLE_KEYS)
-                body = _first(row, _MOSAIC_BODY_KEYS)
-                meta = {k: _clip(v) if isinstance(v, str) else v for k, v in row.items()}
-                out.append(
-                    Trajectory(
-                        source="mosaic",
-                        agent=agent,
-                        model=None,
-                        task_id=str(row.get("id") or row.get("pr_id") or row.get("url") or f"{path.stem}-row{i}"),
-                        resolved=None,
-                        steps=[Step(index=0, thought=_clip(f"{title or ''}\n\n{body or ''}".strip()))],
-                        meta=meta,
-                    )
-                )
-    _report("mosaic", out, skipped)
-    return out
-
-
 # --------------------------------------------------------------------- CLI
 
 def _report(source: str, out: list, skipped: list) -> None:
@@ -470,10 +289,8 @@ def _report(source: str, out: list, skipped: list) -> None:
 
 
 PARSERS = {
-    "swebench": parse_swebench,
     "tbench": parse_tbench,
     "tbench21": parse_tbench21,
-    "mosaic": parse_mosaic,
 }
 
 

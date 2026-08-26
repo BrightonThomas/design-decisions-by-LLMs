@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "decision-event-v1",
+  "title": "Observable design-decision extraction",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "task_id", "trial_id", "events"],
+  "properties": {
+    "schema_version": {"const": "decision-event-v1"},
+    "task_id": {"type": "string", "minLength": 1},
+    "trial_id": {"type": "string", "minLength": 1},
+    "events": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/event"}
+    }
+  },
+  "$defs": {
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id", "source_steps", "primary_category", "secondary_category",
+        "decision_summary", "selected_option", "alternative_visible",
+        "primary_reason", "secondary_reasons", "reason_summary",
+        "decision_visibility", "reason_visibility", "confidence", "evidence"
+      ],
+      "properties": {
+        "event_id": {"type": "string", "pattern": "^P[0-9]{2,}$"},
+        "source_steps": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": {"type": "integer", "minimum": 0}
+        },
+        "primary_category": {"enum": ["D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"]},
+        "secondary_category": {
+          "oneOf": [
+            {"enum": ["D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"]},
+            {"type": "null"}
+          ]
+        },
+        "decision_summary": {"type": "string", "minLength": 1},
+        "selected_option": {"type": "string", "minLength": 1},
+        "alternative_visible": {"type": ["string", "null"]},
+        "primary_reason": {"enum": ["R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8"]},
+        "secondary_reasons": {
+          "type": "array", "uniqueItems": true,
+          "items": {"enum": ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8"]}
+        },
+        "reason_summary": {"type": "string"},
+        "decision_visibility": {"enum": ["STATED", "BEHAVIOURAL", "AMBIGUOUS"]},
+        "reason_visibility": {"enum": ["EXPLICIT", "CONTEXTUAL", "UNAVAILABLE"]},
+        "confidence": {"enum": ["HIGH", "MEDIUM", "LOW"]},
+        "evidence": {
+          "type": "array", "minItems": 1,
+          "items": {"$ref": "#/$defs/evidence"}
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["step", "field", "excerpt"],
+      "properties": {
+        "step": {"type": "integer", "minimum": 0},
+        "field": {"enum": ["thought", "action", "observation"]},
+        "excerpt": {"type": "string", "minLength": 1, "maxLength": 1000}
+      }
+    }
+  }
+}

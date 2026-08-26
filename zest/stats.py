@@ -21,23 +21,13 @@ from statistics import mean
 from rich.console import Console
 from rich.table import Table
 
-from .paths import CURATED_TERMINAL_BENCH, NORMALIZED_DIR
+from .paths import CURATED_TERMINAL_BENCH
 from .schema import read_jsonl
 
 
 def main() -> None:
     console = Console()
-    # Terminal-Bench analyses use the curated outcome-enriched corpora.
-    # SWE-bench and MOSAIC have no curated layer and remain normalized inputs.
-    files = [
-        path
-        for path in (
-            NORMALIZED_DIR / "swebench.jsonl",
-            NORMALIZED_DIR / "mosaic.jsonl",
-            *CURATED_TERMINAL_BENCH.values(),
-        )
-        if path.exists()
-    ]
+    files = [path for path in CURATED_TERMINAL_BENCH.values() if path.exists()]
     if not files:
         console.print("No analysis-ready data found. Run the parsers and Terminal-Bench curation first.")
         return
@@ -49,7 +39,7 @@ def main() -> None:
             groups[(t.source, t.agent)].append(t)
             task_agents[(t.source, t.task_id)].add(t.agent)
 
-    table = Table(title="ZEST demo corpus")
+    table = Table(title="TerminalBench trajectory corpus")
     for col in ("source", "agent", "models", "trajs", "resolved", "avg steps",
                 "steps w/ thought", "avg duration"):
         table.add_column(col, justify="right" if col != "agent" else "left")
@@ -79,10 +69,7 @@ def main() -> None:
     for (source, task_id), agents in list(overlaps.items())[:10]:
         console.print(f"  {source}:{task_id} <- {', '.join(sorted(agents))}")
     if not overlaps:
-        console.print(
-            "  (expected at demo scale with one submission — overlap appears once "
-            "multiple submissions covering the same split are fetched)"
-        )
+        console.print("  No task is represented by more than one agent in the available data.")
 
 
 if __name__ == "__main__":

@@ -2,9 +2,7 @@
 non-determinable -- a content-*shape* breakdown, distinct from the
 thought-coverage percentage `zest.stats` already reports.
 
-Terminal-Bench only (tbench + tbench21) -- matches the standing scope used
-elsewhere for corpus analysis (SWE-bench/MOSAIC are demo-scale samples, see
-presentations/analyze.py).
+The classifier operates on the curated TerminalBench 2.0 and 2.1 corpora.
 
 Hybrid classifier: `bash` and `tool_call` are exact syntax checks (shell
 operators/verbs, JSON validity) -- a model has no edge over a parser/regex
