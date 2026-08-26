@@ -1,0 +1,83 @@
+# -----------------------------------------------------------------------------
+# Project data and generated artifacts
+# -----------------------------------------------------------------------------
+
+# TerminalBench source, normalized, and curated datasets are several GB.
+/data/
+
+# Reproducible notebook/script results, exports, figures, and workbooks.
+/outputs/
+
+# Local presentation material is not part of the code repository.
+/presentations/
+/annotations/
+
+# Temporary build and verification workspaces created by local tools.
+/.codex_tmp/
+/tmp/
+
+# Common large dataset, checkpoint, and archive formats. Keep these outside Git
+# even if they are accidentally written somewhere other than data/ or outputs/.
+*.parquet
+*.arrow
+*.feather
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.joblib
+*.npy
+*.npz
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.7z
+
+# -----------------------------------------------------------------------------
+# Python and notebooks
+# -----------------------------------------------------------------------------
+
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.ipynb_checkpoints/
+.jupyter_cache/
+
+# Packaging, test, type-checker, and coverage caches.
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# -----------------------------------------------------------------------------
+# Local dependencies, configuration, and logs
+# -----------------------------------------------------------------------------
+
+node_modules/
+
+# Secrets / local environment config (for example GITHUB_TOKEN).
+.env
+.env.*
+!.env.example
+
+# Run, download, and backfill logs.
+*.log
+
+# OS and editor files.
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

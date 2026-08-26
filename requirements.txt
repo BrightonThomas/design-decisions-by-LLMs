@@ -1,0 +1,16 @@
+requests>=2.31
+datasets>=2.19
+rich>=13.7
+tqdm>=4.66
+matplotlib
+pandas>=2.2
+tiktoken>=0.9
+jinja2>=3.1
+python-pptx>=1.0
+openpyxl>=3.1
+# huggingface_hub is pulled in by `datasets`; the tbench HF-mirror fetcher was
+# retired in favor of the automated tbench.ai/Harbor-hub fetchers, so it's no
+# longer required directly.
+# pandas is only used by notebooks/tbench21_analysis.ipynb, not by the zest/
+# pipeline itself. matplotlib and python-pptx are only used by the
+# presentations/ scripts (chart + slide-deck generation), also not by zest/.

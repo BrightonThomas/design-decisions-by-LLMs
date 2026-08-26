@@ -1,0 +1,24 @@
+[project]
+name = "design-decisions-by-llms"
+version = "0.1.0"
+description = "Analyze how models and harnesses influence design decisions in TerminalBench agent trajectories."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "requests>=2.31",
+    "datasets>=2.19",
+    "rich>=13.7",
+    "tqdm>=4.66",
+    "matplotlib",
+    "pandas>=2.2",
+    "python-pptx>=1.0.2",
+    "py3langid>=0.3.0",
+    "openpyxl>=3.1",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.3.0",
+    "nbclient>=0.11.0",
+    "nbformat>=5.10.4",
+]
