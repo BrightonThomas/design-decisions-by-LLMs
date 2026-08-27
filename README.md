@@ -1,8 +1,4 @@
 # Design Decisions by LLMs
-
-Research code and reproducible analysis for a Master's thesis on design
-decisions in LLM coding-agent trajectories.
-
 The project studies how an agent's underlying model and execution harness
 influence its problem-solving process: which decisions appear, what evidence or
 reasons accompany them, how visible the reasoning is, and how consistently the
@@ -93,6 +89,7 @@ examples:
   understandable software tasks and adds simple analyst labels.
 - `llm-scheduler-single-trajectory.xlsx` links all steps of one resolved
   scheduler trajectory to six detailed decision events.
+
 
 ## Preparing TerminalBench data
 
