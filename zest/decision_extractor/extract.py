@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Any
 
 from . import EXTRACTOR_VERSION, PROMPT_VERSION, SCHEMA_VERSION
-from .core import parse_response, select_trajectories, validate_extraction, write_jsonl
+from .core import parse_response, read_jsonl, select_trajectories, validate_extraction, write_jsonl
 from .prompting import render_prompt
-from .providers import CommandProvider, FixtureProvider
+from .providers import CodexCliProvider, CommandProvider, FixtureProvider
 
 
 def run_extraction(
@@ -20,7 +20,12 @@ def run_extraction(
     model_name: str | None = None,
 ) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
-    for trajectory in trajectories:
+    for index, trajectory in enumerate(trajectories, 1):
+        print(
+            f"[{index}/{len(trajectories)}] extracting {trajectory['task_id']} "
+            f"({trajectory['trial_id']})",
+            flush=True,
+        )
         prompt = render_prompt(template_path, schema_path, trajectory)
         record: dict[str, Any] = {
             "extractor_version": EXTRACTOR_VERSION,
@@ -73,15 +78,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--schema", type=Path, required=True)
     parser.add_argument("--prompt", type=Path, required=True)
-    parser.add_argument("--provider", choices=("outbox", "fixture", "command"), required=True)
+    parser.add_argument("--provider", choices=("outbox", "fixture", "command", "codex"), required=True)
     parser.add_argument("--fixture", type=Path)
     parser.add_argument("--command-json", help='Example: ["claude","-p"]')
+    parser.add_argument("--codex-executable", default="codex")
     parser.add_argument("--model-name")
     parser.add_argument("--task-id")
     parser.add_argument("--trial-id", action="append", default=[])
     parser.add_argument("--resolved-only", action="store_true")
     parser.add_argument("--limit", type=int)
     parser.add_argument("--timeout", type=int, default=600)
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Keep valid output records and process only missing or invalid trials",
+    )
     return parser.parse_args()
 
 
@@ -104,20 +115,50 @@ def main() -> None:
         if not args.fixture:
             raise SystemExit("--fixture is required with --provider fixture")
         provider = FixtureProvider(args.fixture)
+    elif args.provider == "codex":
+        provider = CodexCliProvider(
+            schema_path=args.schema,
+            model_name=args.model_name,
+            executable=args.codex_executable,
+            timeout_seconds=args.timeout,
+        )
     else:
         if not args.command_json:
             raise SystemExit("--command-json is required with --provider command")
         provider = CommandProvider(args.command_json, args.timeout)
-    records = run_extraction(trajectories, args.prompt, args.schema, provider, args.model_name)
+    recorded_model = args.model_name
+    if args.provider == "codex" and not recorded_model:
+        recorded_model = "codex-cli-default"
+    existing: list[dict[str, Any]] = []
+    if args.resume and args.output.exists():
+        existing = list(read_jsonl(args.output))
+    valid_existing = {
+        str(record.get("trial_id")): record
+        for record in existing
+        if record.get("valid") is True
+    }
+    pending = [
+        trajectory for trajectory in trajectories
+        if trajectory["trial_id"] not in valid_existing
+    ]
+    new_records = run_extraction(pending, args.prompt, args.schema, provider, recorded_model)
+    new_by_trial = {str(record["trial_id"]): record for record in new_records}
+    records = [
+        new_by_trial.get(trajectory["trial_id"])
+        or valid_existing[trajectory["trial_id"]]
+        for trajectory in trajectories
+        if trajectory["trial_id"] in new_by_trial or trajectory["trial_id"] in valid_existing
+    ]
     count = write_jsonl(records, args.output)
     print(json.dumps({
-        "mode": args.provider,
+        "mode": provider.name,
         "records": count,
         "valid": sum(bool(r["valid"]) for r in records),
+        "reused": len(valid_existing),
+        "processed": len(new_records),
         "output": str(args.output),
     }))
 
 
 if __name__ == "__main__":
     main()
-

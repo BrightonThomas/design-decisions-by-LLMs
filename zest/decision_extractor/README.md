@@ -46,6 +46,22 @@ python -m zest.decision_extractor.extract `
   --provider outbox
 ```
 
+## Prepare the ten-trajectory Month 3 pilot
+
+The pilot contains ten distinct resolved TerminalBench 2.1 tasks. It
+prioritises software-engineering and data-science tasks, includes the scheduler
+calibration case, and covers all six available harnesses.
+
+```powershell
+python -m zest.decision_extractor.prepare_pilot_sample `
+  --input data/curated/terminal_bench_2_1/trajectories.jsonl `
+  --output-dir outputs/month3_pilot_10
+```
+
+The command writes a compact extractor input file and a CSV manifest. The
+trajectory records are selected automatically; no trajectory text needs to be
+copied manually.
+
 ## Run with an LLM command
 
 The command must read the prompt from standard input and print only the JSON
@@ -66,6 +82,44 @@ python -m zest.decision_extractor.extract `
 No live provider is selected by default, preventing accidental API or subscription
 usage. The included `gold_replay` run is only a pipeline test; its perfect score
 must never be reported as model accuracy.
+
+### Temporary Codex CLI backend
+
+If the local Codex CLI is already authenticated, it can be used as the temporary
+extractor without copying trajectories by hand:
+
+```powershell
+python -m zest.decision_extractor.extract `
+  --input outputs/month3_pilot_10/pilot_trajectories_10.jsonl `
+  --output outputs/month3_pilot_10/pilot_predictions_codex.jsonl `
+  --schema annotations/decision_event_schema_v1.json `
+  --prompt annotations/extractor_prompt_v1.md `
+  --provider codex `
+  --model-name gpt-6-astra `
+  --resume
+```
+
+The backend uses a fresh empty working directory, read-only sandboxing, the JSON
+schema, and an ephemeral Codex session. Replace the provider or model later while
+keeping the same input and output contracts.
+
+The compact pilot preserves the recorded trajectory fields unchanged. The
+`--resume` option reuses valid outputs and retries only missing or invalid trials.
+
+## Build the review interface
+
+Generate one self-contained HTML file after extraction:
+
+```powershell
+python -m zest.decision_extractor.build_review_viewer `
+  --trajectories outputs/month3_pilot_10/pilot_trajectories_10.jsonl `
+  --predictions outputs/month3_pilot_10/pilot_predictions_codex.jsonl `
+  --output outputs/month3_pilot_10/decision_review.html
+```
+
+The viewer shows the complete thought/action/observation sequence, extracted
+decisions beside their exact source steps, and lightweight accepted/corrected/
+rejected review controls. Reviews remain in the browser until exported as JSON.
 
 ## Evaluate predictions
 

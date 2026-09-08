@@ -160,7 +160,8 @@ The current annotation protocol records:
 The extractor implementation is under `zest/decision_extractor/`. It separates
 prompt preparation, provider execution, response validation, and evaluation so
 that model accuracy is not confused with pipeline correctness. A gold-replay
-provider is included only as a plumbing test.
+provider is included only as a plumbing test. A self-contained HTML viewer keeps
+every candidate decision linked to its complete source steps for human review.
 
 ## Reproducibility and repository size
 
@@ -186,5 +187,5 @@ understand the research method.
   interchangeable measurements.
 - Aggregate model/harness comparisons remain descriptive unless tasks and other
   relevant conditions are matched.
-- The extraction prototype requires comparison with independent manual
-  annotations before any model-quality score is reported.
+- Structural validation does not establish conceptual accuracy. Candidate
+  events are spot-checked by a human before aggregate findings are reported.

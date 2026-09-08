@@ -1,12 +1,9 @@
 # Design-Decision Annotation Codebook v1
 
-**Status:** Working calibration draft  
-**Date:** 2026-08-23  
-**Current calibration task:** `llm-inference-batching-scheduler`  
-**Current source:** six resolved Terminal-Bench 2.1 trajectories  
-**Source workbook:** `../outputs/llm_batching_annotations/llm_inference_batching_scheduler_trajectory_annotations.xlsx`
-
-This draft is intentionally calibrated only on `llm-inference-batching-scheduler`. It must be reviewed and improved on this task before it is tested on other software tasks. It is not yet a frozen cross-task codebook.
+This codebook defines how observable design decisions are identified and labelled
+in software-agent trajectories. The worked examples use the
+`llm-inference-batching-scheduler` task, but the annotation rules are intended to
+be applied consistently across tasks, models, and harnesses.
 
 ## 1. Purpose
 
@@ -79,7 +76,9 @@ Every reviewed step or step range receives one of these labels:
 
 ## 4. Decision categories
 
-Assign one **primary category** to each `DECISION`. A secondary category may be recorded during calibration, but it must not replace the primary label.
+Assign one **primary category** to each `DECISION`. A secondary category may be
+recorded when it adds useful information, but it must not replace the primary
+label.
 
 ### D1 — Diagnostic or analytical strategy
 
@@ -298,7 +297,7 @@ Each decision-event record should contain:
 
 | Field | Description |
 |---|---|
-| `task_id` | `llm-inference-batching-scheduler` for this calibration round. |
+| `task_id` | Source task identifier. |
 | `trial_id` | Source trajectory identifier. |
 | `model` | Normalized model name. |
 | `harness` | Normalized harness name. |
@@ -308,7 +307,7 @@ Each decision-event record should contain:
 | `step_end` | Last source step in the event. |
 | `decision_label` | `DECISION`, `NOT_DECISION`, or `UNCLEAR`. |
 | `primary_category` | One of `D1`–`D8` for a decision. |
-| `secondary_category` | Optional calibration field. |
+| `secondary_category` | Optional additional decision category. |
 | `decision_summary` | Short neutral description of the selected option. |
 | `selected_option` | What the agent selected or changed. |
 | `alternative_visible` | Alternative rejected or replaced, if recorded. |
@@ -350,7 +349,7 @@ The following are normally `NOT_DECISION` unless additional context shows a mean
 - reporting metrics without selecting a response;
 - restating the final solution in a summary.
 
-## 12. Calibration examples from the six trajectories
+## 12. Worked examples
 
 | Trial/model/harness | Steps | Decision | Primary category | Primary reason | Reason visibility |
 |---|---:|---|---|---|---|
@@ -363,7 +362,8 @@ The following are normally `NOT_DECISION` unless additional context shows a mean
 | Gemini 3.1 Pro Preview / Gemini CLI | 16–17 | Test the effect of shape choice and shape reuse before fixing the grouping strategy. | `D1` | `R3` | `CONTEXTUAL` |
 | Muse Spark 1.1 / mini-swe-agent | 11–29 | Conduct repeated batching-parameter trials. Treat the sequence as one search event unless the search policy visibly changes. | `D4` | `R0` | `UNAVAILABLE` |
 
-These examples are provisional. During the first annotation pass, their event boundaries and labels should be checked against the full untruncated trajectory text.
+The full, untruncated trajectory must always be checked before using an example
+as annotation evidence.
 
 ## 13. Annotation procedure
 
@@ -390,23 +390,3 @@ For each trajectory:
 - Do not treat harness warnings, tool confirmations, or metadata as agent decisions.
 - Keep `STATED` and `BEHAVIOURAL` decisions separate in analysis because harnesses expose different amounts of reasoning text.
 - Compare decision counts only after event merging.
-
-## 15. Open calibration questions
-
-The following questions should be resolved before this codebook is frozen:
-
-1. Should diagnostic experiments (`D1`) be included in the thesis definition of design decisions, or analysed as a separate planning category?
-2. Should mechanical parameter sweeps count as one behavioural decision when no thought states the search policy?
-3. Should `D8 Termination` be included with design decisions or reported separately as agent-control behaviour?
-4. Should secondary decision categories remain in the gold dataset or be removed after calibration?
-5. How much nearby context may be used to assign `CONTEXTUAL` reasons: the event span, a fixed step window, or the whole trajectory?
-
-## 16. Versioning rule
-
-Any change to a category definition, decision boundary, or evidence rule must be recorded before annotations are updated. This file remains `v1` during calibration; dated revisions may be listed below.
-
-### Revision log
-
-| Date | Revision | Description |
-|---|---|---|
-| 2026-08-23 | `v1-draft.1` | Initial task-specific codebook derived from six resolved `llm-inference-batching-scheduler` trajectories. |
