@@ -13,6 +13,9 @@
 
 # Temporary build and verification workspaces created by local tools.
 /.codex_tmp/
+/.codex_build/
+.codex-build/
+.codex-finalizer/
 /tmp/
 
 # Common large dataset, checkpoint, and archive formats. Keep these outside Git
@@ -69,6 +72,19 @@ htmlcov/
 # -----------------------------------------------------------------------------
 
 node_modules/
+
+# OpenCode runtime files. Keep plugins, package manifests, lockfiles, and the
+# shared opencode.jsonc configuration available for version control.
+/.opencode/.cache/
+/.opencode/cache/
+/.opencode/logs/
+/.opencode/sessions/
+/.opencode/storage/
+/.opencode/*.db
+/.opencode/*.db-wal
+/.opencode/*.db-shm
+/.opencode/*.local.json
+/.opencode/*.local.jsonc
 
 # Secrets / local environment config (for example GITHUB_TOKEN).
 .env

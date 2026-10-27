@@ -33,6 +33,15 @@ for a changed algorithm; D3 for a changed representation/shape set; D4 when
 only values or ranges change; D5 when the algorithm remains but its computation
 changes; D7 for how success is checked; D8 for deciding to stop.
 
+
+
+
+
+
+
+
+
+
 ## Reason categories
 
 - R0: no reason observable

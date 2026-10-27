@@ -39,6 +39,12 @@ annotations, and a versioned prototype for LLM-assisted decision extraction.
   validation, and event-level evaluation.
 - Small annotation examples that provide project context without including the
   full datasets.
+- An on-demand OpenCode `/show_dx` command that analyzes a saved coding session
+  with the D1–D8 codebook and produces a source-linked HTML review.
+
+The [OpenCode integration guide](zest/opencode_dx/README.md) explains setup and
+use. It snapshots a session only when the command is run; it does not capture
+work live.
 
 ## Data flow
 

@@ -117,9 +117,11 @@ python -m zest.decision_extractor.build_review_viewer `
   --output outputs/month3_pilot_10/decision_review.html
 ```
 
-The viewer shows the complete thought/action/observation sequence, extracted
-decisions beside their exact source steps, and lightweight accepted/corrected/
-rejected review controls. Reviews remain in the browser until exported as JSON.
+The viewer shows the complete thought/action/observation sequence on the left.
+The right side shows each decision summary, selected option, category,
+visibility, and source step numbers without repeating source-step text. It also
+provides lightweight accepted/corrected/rejected review controls. Reviews remain
+in the browser until exported as JSON.
 
 ## Evaluate predictions
 

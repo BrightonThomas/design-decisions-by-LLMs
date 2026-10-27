@@ -34,10 +34,21 @@ compact codebook reference.
 
 ## Annotation specification
 
-- `codebook_v1.md` defines decision events, decision categories, reason codes,
-  visibility labels, confidence levels, and annotation rules.
-- `decision_event_schema_v1.json` defines the machine-readable event format.
-- `extractor_prompt_v1.md` contains the provider-independent extraction prompt.
+- `codebook_v2.md` defines the revised D1–D8 boundaries, decision-event rules,
+  and the two decision visibility labels, Explicit and Contextual. It includes
+  one example per category in a compact format for LLM input.
+  It uses the step-level workbook's J–M fields.
+- `archive/codebook_v2_before_boundary_revision_2026-10-13.md` preserves the
+  previous broader V2 document, including its reason and confidence framework.
+- `codebook_v1.md` provides a concise design-decision definition and the D1–D8
+  taxonomy, with one illustrative example per category.
+- `decision_event_schema_v1.json` defines the earlier machine-readable event
+  format. Its reason, confidence, and visibility fields have not been updated
+  to implement the revised V2 codebook.
+- `extractor_prompt_v1.md` contains the earlier provider-independent extraction
+  prompt and has not been updated for the revised V2 protocol.
+- `open_coding_extractor_prompt_v2.md` contains the taxonomy-free pilot prompt,
+  including atomic event-boundary rules and two synthetic examples.
 - `extractor_version_log.md` records changes to the extraction protocol.
 
 These files are working research artifacts. Labels may be revised after further
